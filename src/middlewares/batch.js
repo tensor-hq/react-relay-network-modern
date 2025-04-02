@@ -20,6 +20,7 @@ export type BatchMiddlewareOpts = {|
     | ((requestList: RequestWrapper[]) => string | Promise<string>),
   batchTimeout?: number,
   maxBatchSize?: number,
+  maxRequestsPerBatch?: number,
   allowMutations?: boolean,
   method?: 'POST' | 'GET',
   headers?: Headers | Promise<Headers> | ((req: RelayRequestBatch) => Headers | Promise<Headers>),
@@ -57,6 +58,7 @@ export default function batchMiddleware(options?: BatchMiddlewareOpts): Middlewa
   const allowMutations = opts.allowMutations || false;
   const batchUrl = opts.batchUrl || '/graphql/batch';
   const maxBatchSize = opts.maxBatchSize || DEFAULT_BATCH_SIZE;
+  const maxRequestsPerBatch = opts.maxRequestsPerBatch || 0; // 0 is the same as no limit
   const singleton = {};
 
   const fetchOpts = {};
@@ -94,6 +96,7 @@ export default function batchMiddleware(options?: BatchMiddlewareOpts): Middlewa
       batchUrl,
       singleton,
       maxBatchSize,
+      maxRequestsPerBatch,
       fetchOpts,
     });
   };
@@ -108,6 +111,13 @@ function passThroughBatch(req: RelayRequest, next, opts) {
   }
 
   if (!singleton.batcher || !singleton.batcher.acceptRequests) {
+    singleton.batcher = prepareNewBatcher(next, opts);
+  }
+
+  if (
+    opts.maxRequestsPerBatch &&
+    singleton.batcher.requestList.length + 1 > opts.maxRequestsPerBatch
+  ) {
     singleton.batcher = prepareNewBatcher(next, opts);
   }
 

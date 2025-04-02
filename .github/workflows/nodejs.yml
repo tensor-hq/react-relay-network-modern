@@ -32,15 +32,18 @@ jobs:
         run: yarn flow
       - name: Publish Test Report
         if: ${{ always() && matrix.node-version == '14' }}
-        uses: mikepenz/action-junit-report@v2
+        uses: mikepenz/action-junit-report@127c778ac944abc0f48a5103964304bab7eb208b
         with:
           check_name: JUnit Annotations for Node ${{ matrix.node-version }}
-          report_paths: "**/coverage/junit/**/*.xml"
+          report_paths: '**/coverage/junit/**/*.xml'
 
   publish:
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta'
     needs: [tests]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 14
@@ -55,4 +58,5 @@ jobs:
         run: yarn semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,6 +1,7 @@
 {
-  "name": "react-relay-network-modern",
+  "name": "@tensor-hq/react-relay-network-modern",
   "version": "0.0.0-semantically-released",
+  "private": false,
   "description": "Network Layer for React Relay and Express (Batch Queries, AuthToken, Logging, Retry)",
   "engines": {
     "node": ">=14.21.3"
@@ -11,9 +12,9 @@
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/relay-tools/react-relay-network-modern.git"
+  "repository": "git@github.com:tensor-hq/react-relay-network-modern.git",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "keywords": [
     "relay",

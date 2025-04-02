@@ -146,6 +146,7 @@ export type BatchMiddlewareOpts = {
   batchUrl?: string | Promise<string> | ((requestMap: BatchRequestMap) => string | Promise<string>);
   batchTimeout?: number;
   maxBatchSize?: number;
+  maxRequestsPerBatch?: number;
   allowMutations?: boolean;
   method?: 'POST' | 'GET';
   headers?: Headers | Promise<Headers> | ((req: RelayRequestBatch) => Headers | Promise<Headers>);

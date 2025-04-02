@@ -554,4 +554,56 @@ describe('middlewares/batch', () => {
       );
     });
   });
+
+  describe('option `maxRequestsPerBatch`', () => {
+    beforeEach(() => {
+      fetchMock.restore();
+    });
+
+    it('should split batch requests based on max requests limit', async () => {
+      // Set up mocks for single and batch requests
+      fetchMock.mock({
+        matcher: '/graphql',
+        response: {
+          status: 200,
+          body: { data: {} },
+        },
+        method: 'POST',
+      });
+
+      fetchMock.mock({
+        matcher: '/graphql/batch',
+        response: {
+          status: 200,
+          body: [{ data: {} }, { data: {} }],
+        },
+        method: 'POST',
+      });
+
+      // Create a network layer with maxRequestsPerBatch set to 2
+      const rnl = new RelayNetworkLayer([batchMiddleware({ maxRequestsPerBatch: 2 })]);
+
+      // Create 5 mock requests
+      const req1 = mockReq(1);
+      const req2 = mockReq(2);
+      const req3 = mockReq(3);
+      const req4 = mockReq(4);
+      const req5 = mockReq(5);
+
+      // Execute all requests simultaneously
+      await Promise.all([
+        req1.execute(rnl),
+        req2.execute(rnl),
+        req3.execute(rnl),
+        req4.execute(rnl),
+        req5.execute(rnl),
+      ]);
+
+      // Check if the requests were properly split into batches
+      const batchReqs = fetchMock.calls('/graphql/batch');
+      const singleReqs = fetchMock.calls('/graphql');
+      expect(batchReqs).toHaveLength(2);
+      expect(singleReqs).toHaveLength(1);
+    });
+  });
 });

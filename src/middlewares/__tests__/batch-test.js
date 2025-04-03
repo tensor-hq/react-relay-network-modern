@@ -438,6 +438,60 @@ describe('middlewares/batch', () => {
     });
   });
 
+  describe('option `allowOperation`', () => {
+    beforeEach(() => {
+      fetchMock.restore();
+    });
+
+    it('should not batch requests that return false', async () => {
+      fetchMock.mock({
+        matcher: '/graphql',
+        response: {
+          status: 200,
+          body: { data: {} },
+        },
+        method: 'POST',
+      });
+      fetchMock.mock({
+        matcher: '/graphql/batch',
+        response: {
+          status: 200,
+          body: [{ data: {} }, { data: {} }],
+        },
+        method: 'POST',
+      });
+
+      const req1 = mockReq(1, {
+        query: 'abc',
+      });
+      const req2 = mockReq(2);
+      const req3 = mockReq(3);
+      const req4 = mockReq(4, {
+        query: 'def',
+      });
+      const req5 = mockReq(4, {
+        query: 'no',
+      });
+
+      const rnl = new RelayNetworkLayer([
+        batchMiddleware({
+          allowOperation: (op) => !['abc', 'def'].includes(op.name),
+        }),
+      ]);
+      await Promise.all([
+        req1.execute(rnl),
+        req2.execute(rnl),
+        req3.execute(rnl),
+        req4.execute(rnl),
+        req5.execute(rnl),
+      ]);
+      const batchReqs = fetchMock.calls('/graphql/batch');
+      const singleReqs = fetchMock.calls('/graphql');
+      expect(batchReqs).toHaveLength(1);
+      expect(singleReqs).toHaveLength(2);
+    });
+  });
+
   it('should pass fetch options', async () => {
     fetchMock.mock({
       matcher: '/graphql/batch',

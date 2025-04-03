@@ -59,6 +59,7 @@ export default function batchMiddleware(options?: BatchMiddlewareOpts): Middlewa
   const batchUrl = opts.batchUrl || '/graphql/batch';
   const maxBatchSize = opts.maxBatchSize || DEFAULT_BATCH_SIZE;
   const maxRequestsPerBatch = opts.maxRequestsPerBatch || 0; // 0 is the same as no limit
+  const allowOperation = opts.allowOperation || true;
   const singleton = {};
 
   const fetchOpts = {};
@@ -81,6 +82,10 @@ export default function batchMiddleware(options?: BatchMiddlewareOpts): Middlewa
       );
     }
 
+    if (isFunction(opts.allowOperation) && !opts.allowOperation(req.operation)) {
+      return next(req);
+    }
+
     // req with FormData can not be batched
     if (req.isFormData()) {
       return next(req);
@@ -97,6 +102,7 @@ export default function batchMiddleware(options?: BatchMiddlewareOpts): Middlewa
       singleton,
       maxBatchSize,
       maxRequestsPerBatch,
+      allowOperation,
       fetchOpts,
     });
   };

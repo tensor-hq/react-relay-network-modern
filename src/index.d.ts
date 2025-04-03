@@ -148,6 +148,7 @@ export type BatchMiddlewareOpts = {
   maxBatchSize?: number;
   maxRequestsPerBatch?: number;
   allowMutations?: boolean;
+  allowOperation?: (operation: ConcreteBatch) => boolean;
   method?: 'POST' | 'GET';
   headers?: Headers | Promise<Headers> | ((req: RelayRequestBatch) => Headers | Promise<Headers>);
   // Available request modes in fetch options. For details see https://fetch.spec.whatwg.org/#requests

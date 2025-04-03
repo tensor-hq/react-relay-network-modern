@@ -475,7 +475,10 @@ describe('middlewares/batch', () => {
 
       const rnl = new RelayNetworkLayer([
         batchMiddleware({
-          allowOperation: (op) => !['abc', 'def'].includes(op.query),
+          allowOperation: (op) => {
+            console.log('op', op);
+            return !['abc', 'def'].includes(op.query);
+          },
         }),
       ]);
       await Promise.all([

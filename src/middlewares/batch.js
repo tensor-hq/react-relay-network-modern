@@ -5,7 +5,7 @@ import { isFunction } from '../utils';
 import RelayRequestBatch from '../RelayRequestBatch';
 import RelayRequest from '../RelayRequest';
 import type RelayResponse from '../RelayResponse';
-import type { Middleware, FetchOpts } from '../definition';
+import type { Middleware, FetchOpts, ConcreteBatch } from '../definition';
 import RRNLError from '../RRNLError';
 
 // Max out at roughly 100kb (express-graphql imposed max)
@@ -22,6 +22,7 @@ export type BatchMiddlewareOpts = {|
   maxBatchSize?: number,
   maxRequestsPerBatch?: number,
   allowMutations?: boolean,
+  allowOperation?: (operation: ConcreteBatch) => boolean,
   method?: 'POST' | 'GET',
   headers?: Headers | Promise<Headers> | ((req: RelayRequestBatch) => Headers | Promise<Headers>),
   // Avaliable request modes in fetch options. For details see https://fetch.spec.whatwg.org/#requests

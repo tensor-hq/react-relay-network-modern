@@ -5,7 +5,7 @@ import { isFunction } from '../utils';
 import RelayRequestBatch from '../RelayRequestBatch';
 import RelayRequest from '../RelayRequest';
 import type RelayResponse from '../RelayResponse';
-import type { Middleware, FetchOpts } from '../definition';
+import type { Middleware, FetchOpts, ConcreteBatch } from '../definition';
 import RRNLError from '../RRNLError';
 
 // Max out at roughly 100kb (express-graphql imposed max)
@@ -21,6 +21,7 @@ export type BatchMiddlewareOpts = {|
   batchTimeout?: number,
   maxBatchSize?: number,
   allowMutations?: boolean,
+  allowOperation?: (operation: ConcreteBatch) => boolean,
   method?: 'POST' | 'GET',
   headers?: Headers | Promise<Headers> | ((req: RelayRequestBatch) => Headers | Promise<Headers>),
   // Avaliable request modes in fetch options. For details see https://fetch.spec.whatwg.org/#requests
@@ -57,6 +58,7 @@ export default function batchMiddleware(options?: BatchMiddlewareOpts): Middlewa
   const allowMutations = opts.allowMutations || false;
   const batchUrl = opts.batchUrl || '/graphql/batch';
   const maxBatchSize = opts.maxBatchSize || DEFAULT_BATCH_SIZE;
+  const allowOperation = opts.allowOperation || true;
   const singleton = {};
 
   const fetchOpts = {};
@@ -79,6 +81,10 @@ export default function batchMiddleware(options?: BatchMiddlewareOpts): Middlewa
       );
     }
 
+    if (isFunction(opts.allowOperation) && !opts.allowOperation(req.operation)) {
+      return next(req);
+    }
+
     // req with FormData can not be batched
     if (req.isFormData()) {
       return next(req);
@@ -94,6 +100,7 @@ export default function batchMiddleware(options?: BatchMiddlewareOpts): Middlewa
       batchUrl,
       singleton,
       maxBatchSize,
+      allowOperation,
       fetchOpts,
     });
   };

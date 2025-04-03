@@ -456,7 +456,7 @@ describe('middlewares/batch', () => {
         matcher: '/graphql/batch',
         response: {
           status: 200,
-          body: [{ data: {} }, { data: {} }],
+          body: [{ data: {} }, { data: {} }, { data: {} }],
         },
         method: 'POST',
       });
@@ -475,7 +475,7 @@ describe('middlewares/batch', () => {
 
       const rnl = new RelayNetworkLayer([
         batchMiddleware({
-          allowOperation: (op) => !['abc', 'def'].includes(op.name),
+          allowOperation: (op) => !['abc', 'def'].includes(op.query),
         }),
       ]);
       await Promise.all([
